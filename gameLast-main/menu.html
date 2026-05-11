@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tabula - Main Menu</title>
+  <script src="assets/auth.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(to bottom right, #4facfe, #00f2fe);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 200px;
+      padding: 15px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .play-btn { background-color: #ff9800; color: white; }
+    .inventory-btn { background-color: #4caf50; color: white; }
+    .settings-btn { background-color: #2196f3; color: white; }
+
+    .btn:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+
+  <h1 id="welcome">Welcome!</h1>
+
+<button class="btn play-btn" onclick="window.location.href='map/map.html'">Play Game</button>
+  <button class="pixel-btn btn-logout" onclick="logout()">LOGOUT</button>
+  <button class="btn settings-btn" onclick="window.location.href='setup.html';">Avatar</button>
+
+  <script>
+    // Get user info
+    const userType = localStorage.getItem("userType");
+    const userName = localStorage.getItem("userName") || "Guest";
+
+    // Show welcome message
+    document.getElementById("welcome").innerText = `Welcome, ${userName}!`;
+
+  fetch('admin/get_admin_stats.php') 
+        .then(res => res.json())
+        .then(data => { /* mapping data */ })
+        .catch(err => console.error(err));
+
+
+    // Menu button actions (placeholders)
+    function playGame() {
+      alert("Start the game here...");
+    }
+
+    function openInventory() {
+      alert("Open inventory here...");
+    }
+
+    function avatar() {
+      <button onclick="window.location.href='https://google.com';">Go to Google</button>
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+DB name: Tabula
+
+use tabula
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    google_id VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    username VARCHAR(50) DEFAULT NULL,
+    avatar VARCHAR(100) DEFAULT NULL,
+    role VARCHAR(50) DEFAULT 'User',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('active', 'inactive') DEFAULT 'active'
+);
+
+
+
+
+CREATE TABLE buildings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT DEFAULT NULL,
+
+    -- Map position (world coordinates)
+    map_x INT NOT NULL DEFAULT 0,
+    map_y INT NOT NULL DEFAULT 0,
+
+    -- Sprite dimensions (in the JSON these are the raw sprite sheet sizes)
+    width  INT NOT NULL DEFAULT 100,
+    height  INT NOT NULL DEFAULT 100,
+    frames  INT NOT NULL DEFAULT 1,
+
+    -- Image path (relative to the map's img/ folder, e.g. img/buildings/chapel.png)
+    image   VARCHAR(255) DEFAULT NULL,
+
+    -- Zone (where player "enters" the building) - stored as 4 decimal columns
+    zone_x FLOAT NOT NULL DEFAULT 0.2,
+    zone_y FLOAT  NOT NULL DEFAULT 0.3,
+    zone_w FLOAT NOT NULL DEFAULT 0.6,
+    zone_h  FLOAT  NOT NULL DEFAULT 0.4,
+
+    -- Collision box (feet-level blocker)
+    col_x  FLOAT NOT NULL DEFAULT 0.1,
+    col_y  FLOAT NOT NULL DEFAULT 0.6,
+    col_w  FLOAT NOT NULL DEFAULT 0.8,
+    col_h  FLOAT NOT NULL DEFAULT 0.2,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+-- INSERT all buildings from buildings.json
+-- ============================================================
+
+INSERT INTO buildings
+    (name, description, map_x, map_y, width, height, frames, image, zone_x, zone_y, zone_w, zone_h, col_x, col_y, col_w, col_h)
+VALUES
+(
+    'Frontline', NULL,
+    140, 1040, 300, 300, 1, 'img/buildings/try.png',
+    0.13975, 0.07,  0.71,  0.6,
+    0.15,    0.525, 0.7,   0.15
+),
+(
+    'ElidaHotel', NULL,
+    1250, 425, 525, 525, 1, 'img/buildings/elidaHotelBldg.png',
+    0.085, 0.13, 0.8,  0.8,
+    0.2,   0.6,  0.6,  0.3
+),
+(
+    'Chapel', NULL,
+    135, 1785, 300, 300, 1, 'img/buildings/chapel.png',
+    0.315, 0.14,  0.30, 0.75,
+    0.32,  0.775, 0.29, 0.15
+),
+(
+    'Sofia1', NULL,
+    950, 1475, 800, 600, 1, 'img/buildings/SofiaBldg.png',
+    0.147, 0.175, 0.733, 0.75,
+    0.14,  0.6,   0.74,  0.4
+),
+(
+    'MarineExtends', NULL,
+    2075, 1700, 100, 100, 1, 'img/buildings/marine_extends.png',
+    0.2, 0.3, 0.6,  0.4,
+    0.2, 0.6, 0.63, 0.3
+),
+(
+    'GlassBuilding', NULL,
+    115, 655, 100, 100, 1, 'img/buildings/glass.png',
+    0.2,  0.3, 0.6,   0.4,
+    0.09, 0.6, 0.825, 0.2
+),
+(
+    'Complex', NULL,
+    1175, -200, 100, 100, 1, 'img/buildings/complex.png',
+    0.2,  0.3, 0.6,   0.4,
+    0.09, 0.5, 0.825, 0.2
+);
+
+
+
+INSERT INTO buildings (name, map_x, map_y, width, height, frames, image, zone_x, zone_y, zone_w, zone_h, col_x, col_y, col_w, col_h) VALUES
+('Mechanical', 1900, 1575, 525, 525, 1, 'img/buildings/mechanical.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('CHS', -145, -350, 525, 525, 1, 'img/buildings/chstry.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Robot', 300, 550, 525, 525, 1, 'img/buildings/robot.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Student\'s Lounge', 300, 300, 525, 525, 1, 'img/buildings/lounge.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Lounge', 300, 1000, 525, 525, 1, 'img/buildings/glasslounge.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Office', 125, -200, 525, 525, 1, 'img/buildings/corner.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('HSBuilding', 640, -75, 525, 525, 1, 'img/buildings/hsline.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('HSExtends', 1440, -75, 525, 525, 1, 'img/buildings/hsextends.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Novus', 1775, -75, 525, 525, 1, 'img/buildings/novus.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Sofia Library', 2690, -150, 525, 525, 1, 'img/buildings/library.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3),
+('Church', 2625, 800, 525, 525, 1, 'img/buildings/church.png', 0.085, 0.13, 0.8, 0.8, 0.2, 0.6, 0.6, 0.3);
+
+
+
+
+UPDATE buildings SET map_x = 140, map_y = 1790, width = 300, height = 300, frames = 1, image = 'img/buildings/try.png', zone_x = 0.13975, zone_y = 0.07, zone_w = 0.71, zone_h = 0.6, col_x = 0.15, col_y = 0.525, col_w = 0.7, col_h = 0.15 WHERE name = 'Frontline';
+
+UPDATE buildings SET map_x = 1250, map_y = 1150, width = 525, height = 525, frames = 1, image = 'img/buildings/elidaHotelBldg.png', zone_x = 0.085, zone_y = 0.13, zone_w = 0.8, zone_h = 0.8, col_x = 0.2, col_y = 0.6, col_w = 0.6, col_h = 0.3 WHERE name = 'ElidaHotel';
+
+UPDATE buildings SET map_x = 135, map_y = 2300, width = 300, height = 300, frames = 1, image = 'img/buildings/chapel.png', zone_x = 0.315, zone_y = 0.14, zone_w = 0.3, zone_h = 0.75, col_x = 0.32, col_y = 0.775, col_w = 0.29, col_h = 0.15 WHERE name = 'Chapel';
+
+UPDATE buildings SET map_x = 650, map_y = 2160, width = 800, height = 600, frames = 1, image = 'img/buildings/SofiaBldg.png', zone_x = 0.147, zone_y = 0.175, zone_w = 0.733, zone_h = 0.75, col_x = 0.14, col_y = 0.6, col_w = 0.74, col_h = 0.4 WHERE name = 'Sofia1';
+
+UPDATE buildings SET map_x = 1925, map_y = 2400, width = 100, height = 100, frames = 1, image = 'img/buildings/marine_extends.png', zone_x = 0.2, zone_y = 0.3, zone_w = 0.6, zone_h = 0.4, col_x = 0.2, col_y = 0.6, col_w = 0.63, col_h = 0.3 WHERE name = 'MarineExtends';
+
+UPDATE buildings SET map_x = 115, map_y = 1405, width = 100, height = 100, frames = 1, image = 'img/buildings/glass.png', zone_x = 0.2, zone_y = 0.3, zone_w = 0.6, zone_h = 0.4, col_x = 0.09, col_y = 0.6, col_w = 0.825, col_h = 0.2 WHERE name = 'GlassBuilding';
+
+UPDATE buildings SET map_x = 1175, map_y = 300, width = 100, height = 100, frames = 1, image = 'img/buildings/complex.png', zone_x = 0.2, zone_y = 0.3, zone_w = 0.6, zone_h = 0.4, col_x = 0.09, col_y = 0.5, col_w = 0.825, col_h = 0.2 WHERE name = 'Complex';
+
+
+
+-- 1. Floors Table
+CREATE TABLE floors (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    building_id INT,
+    floor_level INT, -- e.g., 1, 2, 3
+    FOREIGN KEY (building_id) REFERENCES buildings(id) ON DELETE CASCADE
+);
+
+-- 2. Rooms Table
+CREATE TABLE rooms (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    floor_id INT,
+    room_name VARCHAR(100), -- e.g., "Room 201" or "Library"
+    FOREIGN KEY (floor_id) REFERENCES floors(id) ON DELETE CASCADE
+);

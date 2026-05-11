@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tabula - Character Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('assets/img/bg.png');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+        }
+
+        /* The Main Setup Container - Back to your original style */
+        .setup-case {
+            background: #c9822b;
+            padding: 40px;
+            border: 6px solid #5b2f07;
+            box-shadow:
+                10px 10px 0px #3a1c05,
+                inset -6px -6px 0px #9b5d1a,
+                inset 6px 6px 0px #e6a24a;
+            width: 500px;
+            
+            /* This forces everything inside to align perfectly in the center */
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-shadow: 4px 4px #3a1c05;
+        }
+
+        /* Centered Input Box */
+        input[type="text"] {
+            background: #3a1c05;
+            border: 4px solid #ffffff;
+            color: #ffffff;
+            padding: 15px;
+            font-family: 'Press Start 2P';
+            font-size: 14px;
+            width: 80%;
+            margin-bottom: 30px;
+            outline: none;
+            text-align: center; /* Makes the typing start in the middle */
+        }
+
+        .avatar-grid {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        /* BIGGER Character Frames */
+        .pixel-frame {
+            background: #9b5d1a;
+            border: 4px solid #5b2f07;
+            padding: 10px;
+            width: 140px; /* Increased size */
+            height: 140px; /* Increased size */
+            cursor: pointer;
+            transition: transform 0.1s;
+            image-rendering: pixelated; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pixel-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .pixel-frame:hover {
+            background: #e6a24a;
+            transform: scale(1.05);
+        }
+
+        .pixel-frame.selected {
+            background: rgba(255, 255, 255, 0.7); 
+            border-color: #522603;
+            box-shadow: 0 0 15px #361a02;
+        }
+
+        /* Centered Start Button at the bottom */
+        .btn-start {
+            font-family: 'Press Start 2P';
+            font-size: 20px;
+            color: white;
+            padding: 15px 30px;
+            border: 4px solid #5b2f07;
+            background: #4caf50; 
+            box-shadow:
+                6px 6px 0px #1e3a20,
+                inset -4px -4px 0px #388e3c,
+                inset 4px 4px 0px #81c784;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow: 2px 2px 0px #1e3a20;
+        }
+    </style>
+</head>
+<body>
+
+<div class="setup-case">
+    <h2>NEW VISITOR</h2>
+    
+    <input type="text" id="nickname" placeholder="NICKNAME..." maxlength="12">
+
+    <div class="avatar-grid">
+        <div class="pixel-frame" onclick="selectAvatar(this, 'girl.png')">
+            <img src="assets/img/girl.png" alt="Girl">
+        </div>
+        <div class="pixel-frame" onclick="selectAvatar(this, 'boy.png')">
+            <img src="assets/img/boy.png" alt="Boy">
+        </div>
+    </div>
+
+    <button class="btn-start" onclick="saveAndEnter()">ENTER</button>
+</div>
+
+<script>
+    let selectedAvatar = "";
+
+    function selectAvatar(element, fileName) {
+        document.querySelectorAll('.pixel-frame').forEach(f => f.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedAvatar = fileName;
+    }
+
+    function saveAndEnter() {
+        const name  = document.getElementById('nickname').value;
+        const email = localStorage.getItem("userEmail");
+    
+        if (!name || !selectedAvatar) {
+            alert("Choose a name and a character!");
+            return;
+        }
+    
+        fetch("php/save_setup.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email:    email,
+                username: name,
+                avatar:   selectedAvatar,
+                role:     'user'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                // ✅ ADDED: store the avatar choice so the map engine can read it
+                localStorage.setItem("userName",   name);
+                localStorage.setItem("userAvatar", selectedAvatar); // "girl.png" or "boy.png"
+                window.location.href = "menu.html";
+            } else {
+                alert("Database Error: " + data.message);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

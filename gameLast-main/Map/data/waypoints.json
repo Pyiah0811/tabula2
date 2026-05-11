@@ -1,0 +1,26 @@
+[
+  {
+    "id": "spawn",
+    "x": 760,
+    "y": 1500,
+    "neighbors": ["glass"]
+  },
+  {
+    "id": "glass",
+    "x": 1200,
+    "y": 1500,
+    "neighbors": ["spawn", "marine", "complex"]
+  },
+  {
+    "id": "marine",
+    "x": 1750,
+    "y": 1500,
+    "neighbors": ["glass"]
+  },
+  {
+    "id": "complex",
+    "x": 1200,
+    "y": 750,
+    "neighbors": ["glass"]
+  }
+]

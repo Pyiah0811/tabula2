@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabula - Edit Building</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: #3a1c05 url("../bg.png") no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: -1;
+        }
+
+        .edit-panel {
+            width: 1100px;
+            height: 90vh;
+            background: #c9822b;
+            border: 6px solid #5b2f07;
+            padding: 40px;
+            box-shadow: 10px 10px 0px #000;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #fb5607;
+            border: 3px solid #9e2a2b;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            z-index: 10;
+        }
+        .back-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0px #000; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 50px;
+            margin-top: 30px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ── Left Side ── */
+        .image-col {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-col img {
+            max-width: 100%;
+            max-height: 80%;
+            image-rendering: pixelated;
+            filter: drop-shadow(10px 10px 0px rgba(0,0,0,0.4));
+        }
+
+        /* ── Right Side ── */
+        .form-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        .form-col::-webkit-scrollbar { width: 10px; }
+        .form-col::-webkit-scrollbar-track { background: #5b2f07; }
+        .form-col::-webkit-scrollbar-thumb { background: #ffd166; border: 3px solid #5b2f07; }
+
+        .bldg-name-input {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            color: #ffd166;
+            background: transparent;
+            border: none;
+            border-bottom: 4px solid #5b2f07;
+            width: 100%;
+            padding-bottom: 10px;
+            outline: none;
+        }
+
+        label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #ffd166;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        textarea {
+            background: #5b2f07;
+            border: 4px solid #3a1c05;
+            padding: 15px;
+            color: white;
+            font-size: 14px;
+            width: 100%;
+            height: 110px;
+            resize: none;
+            outline: none;
+        }
+
+        /* ── Floor / Room Section ── */
+        .floor-container {
+            background: rgba(0,0,0,0.15);
+            padding: 16px;
+            border: 4px dashed #5b2f07;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Each floor block */
+        .floor-block {
+            background: #5b2f07;
+            border: 3px solid #3a1c05;
+            padding: 12px 14px;
+        }
+
+        .floor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .floor-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #ffd166;
+        }
+
+        .btn-remove-floor {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            background: #ae2012;
+            border: 2px solid #5b0000;
+            color: #fca5a5;
+            padding: 4px 8px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #000;
+        }
+        .btn-remove-floor:active { transform: translate(1px,1px); box-shadow: 1px 1px 0px #000; }
+
+        /* Rooms list inside a floor */
+        .rooms-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .room-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .room-input {
+            background: #3a1c05;
+            border: 2px solid #251203;
+            padding: 8px 10px;
+            color: white;
+            font-size: 13px;
+            flex: 1;
+            outline: none;
+        }
+        .room-input:focus { border-color: #ffd166; }
+
+        .btn-remove-room {
+            background: #7f1d1d;
+            border: 2px solid #450a0a;
+            color: #fca5a5;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 6px 9px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #000;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .btn-remove-room:active { transform: translate(1px,1px); box-shadow: 1px 1px 0px #000; }
+
+        .btn-add-room {
+            background: #9b5d1a;
+            border: 2px solid #5b2f07;
+            color: #ffd166;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 6px 10px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 2px 2px 0px #000;
+        }
+        .btn-add-room:active { transform: translate(1px,1px); box-shadow: 1px 1px 0px #000; }
+
+        /* Empty-rooms hint */
+        .no-rooms-hint {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            color: #9b5d1a;
+            text-align: center;
+            padding: 6px 0;
+        }
+
+        /* Add floor button */
+        .btn-add-floor {
+            background: #ffd166;
+            border: 3px solid #b8860b;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            color: #3a1c05;
+            box-shadow: 3px 3px 0px #000;
+        }
+        .btn-add-floor:active { transform: translate(2px,2px); box-shadow: 1px 1px 0px #000; }
+
+        .save-btn {
+            background: #4caf50;
+            border: 4px solid #1e3a20;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 13px;
+            padding: 18px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 6px 6px 0px #000;
+            margin-bottom: 20px;
+        }
+        .save-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0px #000; }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #5b2f07;
+            border: 4px solid #3a1c05;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #ffd166;
+            box-shadow: 6px 6px 0px #000;
+            transition: transform 0.3s;
+            z-index: 999;
+        }
+        #toast.show          { transform: translateX(-50%) translateY(0); }
+        #toast.toast-success { border-color: #4caf50; color: #81c784; }
+        #toast.toast-error   { border-color: #ae2012; color: #ff6b6b; }
+    </style>
+</head>
+<body>
+
+<div class="edit-panel">
+    <button class="back-btn" onclick="location.href='manage_buildings.html'">← BACK</button>
+
+    <div class="content-grid">
+        <!-- Left: Building image -->
+        <div class="image-col">
+            <img id="bldgImg" src="../map/img/buildings/placeholder.png" alt="Building">
+        </div>
+
+        <!-- Right: Form -->
+        <div class="form-col">
+            <input type="text" id="bldgName" class="bldg-name-input" placeholder="BUILDING NAME">
+
+            <div>
+                <label>DESCRIPTION</label>
+                <textarea id="bldgDesc" placeholder="Enter building history and details..."></textarea>
+            </div>
+
+            <div>
+                <label>FLOORS &amp; ROOMS</label>
+                <div id="floorsList" class="floor-container"></div>
+                <button class="btn-add-floor" onclick="addFloor()" style="margin-top:10px">+ ADD FLOOR</button>
+            </div>
+
+            <button class="save-btn" onclick="saveChanges()">SAVE BUILDING INFO</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    const urlParams = new URLSearchParams(window.location.search);
+    const bldgId    = urlParams.get('id');
+
+    // floorsData shape: [{ level: 1, rooms: ["Room 101", "Room 102"] }, ...]
+    let floorsData = [];
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    fetch(`../php/api_buildings.php?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+            const b = data.find(item => String(item.id) === String(bldgId));
+            if (!b) { showToast('Building not found', 'error'); return; }
+
+            document.getElementById('bldgName').value = b.name;
+            document.getElementById('bldgDesc').value = b.description || '';
+            document.getElementById('bldgImg').src     = `../map/${b.image}`;
+
+            // ── Parse saved floors ─────────────────────────────────────────
+            // Support: b.floors (array from DB join) OR b.floors_json (legacy string)
+            let saved = [];
+
+            if (Array.isArray(b.floors) && b.floors.length) {
+                saved = b.floors;
+            } else if (b.floors_json) {
+                try { saved = JSON.parse(b.floors_json); } catch (e) {}
+            }
+
+            if (saved.length > 0) {
+                // Normalise: rooms field can be a string ("r1,r2") or array
+                floorsData = saved.map((f, i) => ({
+                    level: f.level ?? (i + 1),
+                    rooms: normaliseRooms(f.rooms)
+                }));
+            } else {
+                // Default: one empty floor
+                floorsData = [{ level: 1, rooms: [] }];
+            }
+
+            renderAllFloors();
+        })
+        .catch(() => showToast('Failed to load building data', 'error'));
+
+    // ── Normalise rooms to always be a plain string[] ─────────────────────────
+    function normaliseRooms(rooms) {
+        if (!rooms) return [];
+        if (Array.isArray(rooms)) {
+            // Each element might be an object { name } or a plain string
+            return rooms.map(r => (typeof r === 'object' ? (r.name || '') : String(r))).filter(Boolean);
+        }
+        if (typeof rooms === 'string') {
+            // Comma-separated legacy format
+            return rooms.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [];
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function renderAllFloors() {
+        const container = document.getElementById('floorsList');
+        container.innerHTML = '';
+        floorsData.forEach((_, i) => container.appendChild(buildFloorElement(i)));
+    }
+
+    function buildFloorElement(floorIdx) {
+        const f = floorsData[floorIdx];
+
+        const block = document.createElement('div');
+        block.className = 'floor-block';
+        block.id = `floor-block-${floorIdx}`;
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'floor-header';
+        header.innerHTML = `
+            <span class="floor-label">FLOOR ${f.level}</span>
+            <button class="btn-remove-floor" onclick="removeFloor(${floorIdx})">✕ REMOVE FLOOR</button>
+        `;
+        block.appendChild(header);
+
+        // Rooms list
+        const roomsList = document.createElement('div');
+        roomsList.className = 'rooms-list';
+        roomsList.id = `rooms-list-${floorIdx}`;
+
+        if (f.rooms.length === 0) {
+            roomsList.innerHTML = `<div class="no-rooms-hint">No rooms yet — add one below</div>`;
+        } else {
+            f.rooms.forEach((room, rIdx) => {
+                roomsList.appendChild(buildRoomRow(floorIdx, rIdx, room));
+            });
+        }
+        block.appendChild(roomsList);
+
+        // Add room button
+        const addRoomBtn = document.createElement('button');
+        addRoomBtn.className = 'btn-add-room';
+        addRoomBtn.textContent = '+ ADD ROOM';
+        addRoomBtn.onclick = () => addRoom(floorIdx);
+        block.appendChild(addRoomBtn);
+
+        return block;
+    }
+
+    function buildRoomRow(floorIdx, roomIdx, value) {
+        const row = document.createElement('div');
+        row.className = 'room-row';
+        row.id = `room-row-${floorIdx}-${roomIdx}`;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'room-input';
+        input.value = value;
+        input.placeholder = `Room name...`;
+        input.oninput = () => { floorsData[floorIdx].rooms[roomIdx] = input.value; };
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn-remove-room';
+        removeBtn.textContent = '✕';
+        removeBtn.title = 'Remove room';
+        removeBtn.onclick = () => removeRoom(floorIdx, roomIdx);
+
+        row.appendChild(input);
+        row.appendChild(removeBtn);
+        return row;
+    }
+
+    // ── Floor Operations ──────────────────────────────────────────────────────
+    function addFloor() {
+        const nextLevel = floorsData.length + 1;
+        floorsData.push({ level: nextLevel, rooms: [] });
+        renderAllFloors();
+        // Scroll to bottom so new floor is visible
+        document.querySelector('.form-col').scrollTop = 9999;
+    }
+
+    function removeFloor(floorIdx) {
+        floorsData.splice(floorIdx, 1);
+        // Re-number levels
+        floorsData.forEach((f, i) => f.level = i + 1);
+        renderAllFloors();
+    }
+
+    // ── Room Operations ───────────────────────────────────────────────────────
+    function addRoom(floorIdx) {
+        floorsData[floorIdx].rooms.push('');
+
+        // Re-render only this floor's rooms list (avoids full re-render losing focus)
+        const roomsList = document.getElementById(`rooms-list-${floorIdx}`);
+        // Clear the "no rooms" hint if present
+        roomsList.innerHTML = '';
+
+        const rooms = floorsData[floorIdx].rooms;
+        rooms.forEach((room, rIdx) => {
+            roomsList.appendChild(buildRoomRow(floorIdx, rIdx, room));
+        });
+
+        // Focus the new input
+        const newRow = roomsList.lastElementChild;
+        if (newRow) newRow.querySelector('input')?.focus();
+    }
+
+    function removeRoom(floorIdx, roomIdx) {
+        floorsData[floorIdx].rooms.splice(roomIdx, 1);
+
+        const roomsList = document.getElementById(`rooms-list-${floorIdx}`);
+        roomsList.innerHTML = '';
+
+        const rooms = floorsData[floorIdx].rooms;
+        if (rooms.length === 0) {
+            roomsList.innerHTML = `<div class="no-rooms-hint">No rooms yet — add one below</div>`;
+        } else {
+            rooms.forEach((room, rIdx) => {
+                roomsList.appendChild(buildRoomRow(floorIdx, rIdx, room));
+            });
+        }
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+    function saveChanges() {
+        // Collect live input values before sending (some may not have fired oninput yet)
+        floorsData.forEach((f, fi) => {
+            const rows = document.querySelectorAll(`#rooms-list-${fi} .room-input`);
+            f.rooms = Array.from(rows).map(inp => inp.value.trim()).filter(Boolean);
+        });
+
+        const payload = {
+            id:          bldgId,
+            name:        document.getElementById('bldgName').value.trim(),
+            description: document.getElementById('bldgDesc').value.trim(),
+            floors:      floorsData   // [{ level, rooms: string[] }]
+        };
+
+        fetch('../php/update_building.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('Building saved!', 'success');
+            } else {
+                showToast(data.message || 'Save failed', 'error');
+            }
+        })
+        .catch(() => showToast('Network error', 'error'));
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className   = `show toast-${type}`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+    }
+</script>
+
+</body>
+</html>

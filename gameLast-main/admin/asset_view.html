@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tabula - Asset View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="../assets/auth.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden; 
+            background: #3a1c05 url("../bg.png") no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 1200px;
+            padding: 25px 0;
+            flex-shrink: 0;
+        }
+
+        .wood-board {
+            background: #c9822b;
+            border: 4px solid #5b2f07;
+            padding: 12px 18px;
+            color: white;
+            text-shadow: 2px 2px #000;
+            box-shadow: inset -4px -4px 0px #8b4513, 4px 4px 0px #000;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Red back button — matches other admin pages */
+        .btn-back {
+            cursor: pointer;
+            transition: 0.1s;
+            background: #ae2012;
+            border-color: #5b0000;
+            box-shadow: inset -4px -4px 0px #7a0000, 4px 4px 0px #000;
+        }
+        .btn-back:hover { background: #c9281a; }
+        .btn-back:active { transform: translateY(4px); box-shadow: 2px 2px 0px #000; }
+
+        /* Search wrapper: input + button side by side */
+        .search-board {
+            background: #c9822b;
+            border: 4px solid #5b2f07;
+            box-shadow: inset -4px -4px 0px #8b4513, 4px 4px 0px #000;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .search-box {
+            background: #5b2f07;
+            border: none;
+            color: #ffd166;
+            font-family: 'Press Start 2P', cursive;
+            outline: none;
+            font-size: 10px;
+            padding: 12px 14px;
+            width: 180px;
+        }
+        .search-box::placeholder { color: #9b5d1a; }
+
+        .search-btn {
+            background: #c9822b;
+            border: none;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            text-shadow: 2px 2px #000;
+            transition: background 0.1s;
+        }
+        .search-btn:hover  { background: #e6a24a; }
+        .search-btn:active { background: #9b5d1a; }
+
+        /* Empty state */
+        .empty-state {
+            font-size: 11px;
+            color: #9b5d1a;
+            text-align: center;
+            padding: 60px 20px;
+            line-height: 2;
+        }
+
+        .main-container {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            padding: 20px 0 80px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 50px;
+            width: 90%;
+            max-width: 1200px;
+            justify-items: center;
+            align-content: start;
+        }
+
+        .asset-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .img-slot {
+            width: 260px;
+            height: 220px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid #5b2f07;
+            box-shadow: inset 0 0 20px #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .asset-card:hover .img-slot {
+            background: rgba(201, 130, 43, 0.2);
+            border-color: #ffd166;
+            box-shadow: 0 0 15px rgba(255, 209, 102, 0.4);
+        }
+
+        .img-slot img {
+            max-width: 85%;
+            max-height: 85%;
+            image-rendering: pixelated;
+            filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.6));
+            transition: transform 0.2s;
+        }
+
+        .asset-card:hover img {
+            transform: scale(1.1) translateY(-10px);
+        }
+
+        .label-board {
+            background: #c9822b;
+            border: 3px solid #5b2f07;
+            padding: 10px;
+            color: white;
+            font-size: 9px;
+            text-align: center;
+            width: 240px;
+            box-shadow: 4px 4px 0px #000;
+            line-height: 1.4;
+        }
+
+        .main-container::-webkit-scrollbar { width: 12px; }
+        .main-container::-webkit-scrollbar-track { background: #3a1c05; }
+        .main-container::-webkit-scrollbar-thumb { background: #c9822b; border: 3px solid #5b2f07; }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <div class="wood-board btn-back" onclick="location.href='manage_buildings.html'">← BACK</div>
+        <div class="wood-board">CHOOSE ASSET TO EDIT</div>
+        <div class="search-board">
+            <input type="text" id="searchInput" class="search-box" placeholder="SEARCH...">
+            
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="asset-grid" id="assetGrid"></div>
+    </div>
+
+<script>
+    let allBuildings = [];
+
+    fetch('../php/api_buildings.php')
+        .then(res => res.json())
+        .then(data => {
+            allBuildings = data;
+            renderGrid(allBuildings);
+        })
+        .catch(err => console.error("Database connection error."));
+
+    // Search on Enter key too
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') applySearch();
+    });
+
+    // Live filter as user types
+    document.getElementById('searchInput').addEventListener('input', applySearch);
+
+    function applySearch() {
+        const term = document.getElementById('searchInput').value.toLowerCase().trim();
+        const filtered = term
+            ? allBuildings.filter(b => b.name.toLowerCase().includes(term))
+            : allBuildings;
+        renderGrid(filtered);
+    }
+
+    function renderGrid(data) {
+        const grid = document.getElementById('assetGrid');
+
+        if (!data.length) {
+            grid.innerHTML = `<div class="empty-state">NO BUILDINGS FOUND</div>`;
+            return;
+        }
+
+        grid.innerHTML = data.map(bldg => {
+            const imgPath = bldg.image ? `../map/${bldg.image}` : `../map/img/placeholder.png`;
+            return `
+                <div class="asset-card" onclick="location.href='edit_building.html?id=${bldg.id}'">
+                    <div class="img-slot">
+                        <img src="${imgPath}" alt="${bldg.name}" onerror="this.src='../../img/placeholder.png'">
+                    </div>
+                    <div class="label-board">${bldg.name.toUpperCase()}</div>
+                </div>
+            `;
+        }).join('');
+    }
+</script>
+
+</body>
+</html>

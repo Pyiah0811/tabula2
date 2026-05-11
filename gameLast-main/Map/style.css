@@ -1,0 +1,237 @@
+body{
+    background-color: rgb(65, 65, 65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+canvas{
+    padding: 0%;
+    border: 2px solid white;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain; /* This prevents the map from stretching weirdly */
+    background: black;
+}
+
+.canvas-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.search-wrapper {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  font-family: Arial, sans-serif;
+
+  display: flex;
+  flex-direction: column; /* 👈 stacks search + panel */
+  align-items: flex-end;   /* keeps right alignment */
+  gap: 10px;               /* space between search and panel */
+}
+
+#infoPanel {
+    display: none;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+
+    padding: 15px;
+    box-sizing: border-box;
+
+    background: #9b6a2f;
+
+    border: 5px solid #3e2612;
+    border-radius: 10px;
+
+    /* bold cartoon outline effect */
+    outline: 3px solid #000;
+    outline-offset: -6px;
+
+    box-shadow:
+        0 5px 0 #2a160b,
+        0 8px 15px rgba(0, 0, 0, 0.35);
+
+    color: #fff8e6;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50px;
+  padding: 5px;
+  width: 40px; /* Initial circle size */
+  height: 40px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.search-container.active {
+  width: 250px; /* Expanded size */
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  width: 0;
+  font-size: 16px;
+  transition: width 0.4s, padding 0.4s;
+  opacity: 0;
+}
+
+.search-container.active .search-input {
+  width: 100%;
+  padding: 0 15px;
+  opacity: 1;
+}
+
+.search-icon {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+
+#infoPanel button {
+    background: #5a381a;
+    border: 2px solid #2b160b;
+    color: white;
+    padding: 6px 10px;
+    margin-top: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+#infoPanel button:hover {
+    background: #7a4a22;
+}
+
+#infoPanel p {
+    margin: 10px 0;
+    line-height: 1.4;
+    word-break: break-word;  
+    display: -webkit-box;
+    overflow: hidden;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background: #9b6a2f;  
+    border: 4px solid #3e2612; 
+    outline: 2px solid #000;
+    outline-offset: -5px;
+    border-radius: 50px; 
+    
+    padding: 0;
+    width: 46px; 
+    height: 46px;
+    transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    box-shadow:
+        0 4px 0 #2a160b,
+        0 6px 12px rgba(0, 0, 0, 0.35);
+    box-sizing: border-box;
+    position: relative;
+}
+
+.search-container.active {
+    width: 280px;
+    border-radius: 50px;
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    width: 0;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace; 
+    color: #ffffff;
+    transition: width 0.4s, opacity 0.2s;
+    opacity: 0;
+}
+
+.search-input::placeholder {
+    color: #ffffff;
+    opacity: 0.8;
+}
+
+.search-container.active .search-input {
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 5px;
+    opacity: 1;
+}
+
+.search-icon {
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 18px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.search-icon:hover {
+    transform: scale(1.1);
+    color: #f1c40f;
+}
+
+/*======MOBILE=======*/
+#mobileControls {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: none; /* Hidden by default, show via Media Query */
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    z-index: 1000;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+}
+
+.joy-btn {
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    background: rgba(155, 106, 47, 0.7); /* Your wood color, semi-transparent */
+    border: 3px solid #3e2612;
+    border-radius: 12px;
+    color: white;
+    font-size: 24px;
+    touch-action: manipulation; /* Prevents zooming on double tap */
+}
+
+.joy-btn:active {
+    background: #f1c40f; /* Glows gold when pressed */
+}
+
+/* Show controls only on mobile devices */
+@media (max-width: 900px) {
+    #mobileControls {
+        display: flex;
+    }
+}
+

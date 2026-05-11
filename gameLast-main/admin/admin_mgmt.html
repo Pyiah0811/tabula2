@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Tabula - Account Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="../assets/auth.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: #3a1c05 url("../bg.png") no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: -1;
+        }
+
+        /* ── Main Panel ─────────────────────────── */
+        .admin-panel {
+            width: 1100px;
+            height: 88vh;
+            background: #c9822b;
+            border: 6px solid #5b2f07;
+            padding: 20px 24px;
+            box-shadow: 8px 8px 0px #000;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            font-size: 14px;
+            text-shadow: 2px 2px #5b2f07;
+            margin: 0;
+        }
+
+        /* ── Top Bar ────────────────────────────── */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            background: #5b2f07;
+            border: 3px solid #3a1c05;
+            padding: 10px 14px;
+            color: #ffd166;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            outline: none;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+        .search-box::placeholder { color: #9b5d1a; }
+
+        /* ── Filter Row ─────────────────────────── */
+        /* Replaces the old stats-bar. Tabs + count badge sit together. */
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 8px 12px;
+            border: 3px solid #3a1c05;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #000;
+            transition: transform 0.1s;
+            color: white;
+            background: #5b2f07;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:active { transform: translateY(2px); box-shadow: 1px 1px 0px #000; }
+        .tab-btn.active { background: #ffd166; color: #3a1c05; border-color: #3a1c05; }
+
+        /* count pill inside the active tab */
+        .tab-count {
+            display: none;
+            background: #3a1c05;
+            color: #ffd166;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 2px 6px;
+            border: 2px solid #1c0d00;
+        }
+        .tab-btn.active .tab-count {
+            display: inline-block;
+            background: #5b2f07;
+            color: #fff;
+            border-color: #3a1c05;
+        }
+
+        /* ── Table ──────────────────────────────── */
+        .table-container {
+            overflow-y: auto;
+            border: 4px solid #5b2f07;
+            background: #9b5d1a;
+            flex-grow: 1;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #5b2f07;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #ffd166;
+            z-index: 10;
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 2px solid #5b2f07;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        tr:hover td { background: rgba(0,0,0,0.08); }
+        .self-row td { opacity: 0.55; }
+
+        /* ── Role Toggle Button ──────────────────── */
+        /* Clicking cycles through roles; colour reflects current selection */
+        .role-toggle {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 5px 10px;
+            border: 2px solid;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            user-select: none;
+        }
+        .role-toggle:active { transform: translateY(1px); box-shadow: 1px 1px 0px #000; }
+
+        .role-toggle[data-role="superadmin"] { background: #7c3aed; border-color: #4c1d95; color: #e9d5ff; }
+        .role-toggle[data-role="admin"]      { background: #0369a1; border-color: #082f49; color: #bae6fd; }
+        .role-toggle[data-role="user"]       { background: #3a1c05; border-color: #1c0d00; color: #ffd166; }
+
+        /* Dim toggle when this row's role is unchanged (no pending edit) */
+        .role-toggle.unchanged { opacity: 1; }
+        /* Glow when changed but not yet saved */
+        .role-toggle.changed {
+            box-shadow: 0 0 0 3px #ffd166, 2px 2px 0px #000;
+            animation: pulse-glow 1s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 0 2px #ffd166, 2px 2px 0px #000; }
+            to   { box-shadow: 0 0 0 5px #e6a24a, 2px 2px 0px #000; }
+        }
+
+        /* ── Status Badge ───────────────────────── */
+        .status-badge {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 4px 8px;
+            border: 2px solid;
+        }
+        .status-active   { background: #166534; border-color: #14532d; color: #bbf7d0; }
+        .status-pending  { background: #854d0e; border-color: #713f12; color: #fef08a; }
+        .status-inactive { background: #4b5563; border-color: #374151; color: #d1d5db; }
+
+        /* ── Buttons ─────────────────────────────── */
+        .pixel-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 8px 12px;
+            border: 3px solid;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            color: white;
+            white-space: nowrap;
+        }
+        .pixel-btn:active { transform: translateY(2px); box-shadow: 1px 1px 0px #000; }
+
+        .btn-back   { background: #fb5607; border-color: #9e2a2b; }
+        .btn-update { background: #4caf50; border-color: #1e3a20; }
+        .btn-delete { background: #ae2012; border-color: #5b0000; }
+        .btn-cancel { background: #9b5d1a; border-color: #5b2f07; }
+        .btn-confirm{ background: #4caf50; border-color: #1e3a20; }
+
+        /* UPDATE button is greyed out until role changes */
+        .btn-update:disabled {
+            background: #4a4a4a;
+            border-color: #2a2a2a;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .action-cell { display: flex; gap: 6px; align-items: center; }
+
+        /* ── Scrollbar ───────────────────────────── */
+        .table-container::-webkit-scrollbar { width: 10px; }
+        .table-container::-webkit-scrollbar-track { background: #5b2f07; }
+        .table-container::-webkit-scrollbar-thumb { background: #c9822b; border: 2px solid #5b2f07; }
+
+        /* ── Empty ───────────────────────────────── */
+        .empty-row td {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #9b5d1a;
+            padding: 30px;
+        }
+
+        /* ── Modals ──────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: #c9822b;
+            border: 6px solid #5b2f07;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 10px 10px 0px #000;
+            max-width: 430px;
+            width: 90%;
+        }
+        .modal-box h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 13px;
+            margin: 0 0 15px 0;
+            text-shadow: 2px 2px #5b2f07;
+        }
+        .modal-box p {
+            font-size: 11px;
+            margin: 0 0 25px 0;
+            line-height: 1.9;
+            color: #ffd166;
+        }
+        .modal-box p strong { color: #fff; }
+        .modal-btns { display: flex; gap: 15px; justify-content: center; }
+
+        /* role arrow labels inside modal */
+        .role-arrow {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            display: inline-block;
+            margin-top: 6px;
+        }
+        .role-arrow .old { color: #ff9999; text-decoration: line-through; }
+        .role-arrow .arr { color: #ffd166; margin: 0 8px; }
+        .role-arrow .new { color: #81c784; }
+
+        /* ── Toast ───────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #5b2f07;
+            border: 4px solid #3a1c05;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #ffd166;
+            box-shadow: 6px 6px 0px #000;
+            transition: transform 0.3s;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        #toast.show          { transform: translateX(-50%) translateY(0); }
+        #toast.toast-success { border-color: #4caf50; color: #81c784; }
+        #toast.toast-error   { border-color: #ae2012; color: #ff6b6b; }
+    </style>
+</head>
+<body>
+
+<div class="admin-panel">
+    <h1>⚙ ACCOUNT MANAGEMENT</h1>
+
+    <!-- Top bar: back | search | filter tabs with count -->
+    <div class="top-bar">
+        <button class="pixel-btn btn-back" onclick="location.href='admin_dashboard.html'">← BACK</button>
+        <input type="text" id="searchInput" class="search-box" placeholder="SEARCH EMAIL OR USERNAME...">
+        <div class="filter-row">
+            <button class="tab-btn active" data-filter="all"        onclick="setFilter('all',        this)">ALL        <span class="tab-count" id="cnt-all">0</span></button>
+            <button class="tab-btn"        data-filter="superadmin" onclick="setFilter('superadmin', this)">SUPERADMIN <span class="tab-count" id="cnt-superadmin">0</span></button>
+            <button class="tab-btn"        data-filter="admin"      onclick="setFilter('admin',      this)">ADMIN      <span class="tab-count" id="cnt-admin">0</span></button>
+            <button class="tab-btn"        data-filter="user"       onclick="setFilter('user',       this)">USER       <span class="tab-count" id="cnt-user">0</span></button>
+        </div>
+    </div>
+
+    <!-- Users table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>EMAIL</th>
+                    <th>USERNAME</th>
+                    <th style="width:150px">ROLE</th>
+                    <th style="width:105px">STATUS</th>
+                    <th style="width:180px">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <tr class="empty-row"><td colspan="6">LOADING...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Role update confirm modal -->
+<div class="modal-overlay" id="roleModal">
+    <div class="modal-box">
+        <h2>CONFIRM ROLE CHANGE?</h2>
+        <p id="roleModalMsg"></p>
+        <div class="modal-btns">
+            <button class="pixel-btn btn-confirm" id="confirmRoleBtn">UPDATE</button>
+            <button class="pixel-btn btn-cancel"  onclick="closeModal('roleModal')">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <h2>DELETE USER?</h2>
+        <p id="deleteModalMsg"></p>
+        <div class="modal-btns">
+            <button class="pixel-btn btn-delete" id="confirmDeleteBtn">DELETE</button>
+            <button class="pixel-btn btn-cancel" onclick="closeModal('deleteModal')">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    // ── Constants ─────────────────────────────────────────────────────────────
+    const ROLES      = ['user', 'admin', 'superadmin'];
+    const selfEmail  = localStorage.getItem('userEmail') || '';
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let allUsers      = [];
+    let currentFilter = 'all';
+
+    // Tracks pending role changes: { [userId]: newRole }
+    const pendingChanges = {};
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    loadUsers();
+
+    function loadUsers() {
+            fetch('../php/get_users.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status !== 'success') return showToast('Failed to load users', 'error');
+                    
+                    // NEW: Normalize all roles to lowercase right when we receive them
+                    allUsers = data.users.map(u => {
+                        u.role = (u.role || 'user').toLowerCase();
+                        return u;
+                    });
+                    
+                    updateCounts();
+                    applyFilters();
+                })
+                .catch(() => showToast('Network error loading users', 'error'));
+        }
+
+    // ── Counts ────────────────────────────────────────────────────────────────
+    function updateCounts() {
+        document.getElementById('cnt-all').textContent        = allUsers.length;
+        document.getElementById('cnt-superadmin').textContent = allUsers.filter(u => u.role === 'superadmin').length;
+        document.getElementById('cnt-admin').textContent      = allUsers.filter(u => u.role === 'admin').length;
+        document.getElementById('cnt-user').textContent       = allUsers.filter(u => u.role === 'user').length;
+    }
+
+    // ── Filter & Search ───────────────────────────────────────────────────────
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        let list = currentFilter === 'all'
+            ? allUsers
+            : allUsers.filter(u => u.role === currentFilter);
+
+        if (term) {
+            list = list.filter(u =>
+                (u.email    || '').toLowerCase().includes(term) ||
+                (u.username || '').toLowerCase().includes(term)
+            );
+        }
+        renderTable(list);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function renderTable(users) {
+        const tbody = document.getElementById('userTable');
+
+        if (!users.length) {
+            tbody.innerHTML = `<tr class="empty-row"><td colspan="6">NO USERS FOUND</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = users.map((u, i) => {
+            const isSelf      = u.email === selfEmail;
+            const status      = u.status || 'active';
+            const statusBadge = `<span class="status-badge status-${status}">${status.toUpperCase()}</span>`;
+
+            if (isSelf) {
+                // Locked row — show role as plain badge, no controls
+                return `
+                    <tr class="self-row">
+                        <td style="color:#ffd166;font-weight:bold">${i + 1}</td>
+                        <td>${esc(u.email)}</td>
+                        <td style="color:#ffd166">${esc(u.username || '—')}</td>
+                        <td><span class="role-toggle" data-role="${u.role}" style="cursor:default">${u.role.toUpperCase()}</span></td>
+                        <td>${statusBadge}</td>
+                        <td><div class="action-cell"><span style="font-family:'Press Start 2P',cursive;font-size:8px;opacity:.6">🔒 YOU</span></div></td>
+                    </tr>`;
+            }
+
+            // Determine currently-displayed role (pending or original)
+            const displayRole = pendingChanges[u.id] ?? u.role;
+            const isDirty     = pendingChanges[u.id] !== undefined && pendingChanges[u.id] !== u.role;
+
+            const toggleClass = isDirty ? 'role-toggle changed' : 'role-toggle unchanged';
+
+            return `
+                <tr>
+                    <td style="color:#ffd166;font-weight:bold">${i + 1}</td>
+                    <td>${esc(u.email)}</td>
+                    <td style="color:#ffd166">${esc(u.username || '—')}</td>
+                    <td>
+                        <button class="${toggleClass}"
+                                data-role="${displayRole}"
+                                data-uid="${u.id}"
+                                data-original="${u.role}"
+                                onclick="cycleRole(this)"
+                                title="Click to cycle role">
+                            ${displayRole.toUpperCase()}
+                        </button>
+                    </td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="action-cell">
+                            <button class="pixel-btn btn-update"
+                                    id="upd-${u.id}"
+                                    ${isDirty ? '' : 'disabled'}
+                                    onclick="promptUpdate(${u.id}, '${esc(u.email)}', '${u.role}')">
+                                UPDATE
+                            </button>
+                            <button class="pixel-btn btn-delete"
+                                    onclick="promptDelete(${u.id}, '${esc(u.email)}')">
+                                DEL
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    // ── Role Cycling ──────────────────────────────────────────────────────────
+    function cycleRole(btn) {
+        const uid      = parseInt(btn.dataset.uid);
+        const original = btn.dataset.original;
+        const current  = btn.dataset.role;
+
+        const nextRole = ROLES[(ROLES.indexOf(current) + 1) % ROLES.length];
+
+        // Track change
+        pendingChanges[uid] = nextRole;
+
+        // Update button appearance immediately (no full re-render needed)
+        btn.dataset.role  = nextRole;
+        btn.textContent   = nextRole.toUpperCase();
+        const isDirty     = nextRole !== original;
+        btn.className     = isDirty ? 'role-toggle changed' : 'role-toggle unchanged';
+
+        // Enable / disable the UPDATE button for this row
+        const updBtn = document.getElementById(`upd-${uid}`);
+        if (updBtn) updBtn.disabled = !isDirty;
+
+        // If back to original, remove from pending map
+        if (!isDirty) delete pendingChanges[uid];
+    }
+
+    // ── Update (role save) ────────────────────────────────────────────────────
+    let pendingUpdate = null;
+
+function promptUpdate(userId, email, oldRole) {
+        // dynamically grab the new role from our tracker, fallback to oldRole if weirdness happens
+        const newRole = pendingChanges[userId] || oldRole; 
+        
+        pendingUpdate = { userId, newRole };
+        
+        document.getElementById('roleModalMsg').innerHTML =
+            `<strong>${esc(email)}</strong><br>` +
+            `<span class="role-arrow">` +
+            `  <span class="old">${oldRole.toUpperCase()}</span>` +
+            `  <span class="arr">→</span>` +
+            `  <span class="new">${newRole.toUpperCase()}</span>` +
+            `</span>`;
+        document.getElementById('roleModal').classList.add('active');
+    }
+
+    document.getElementById('confirmRoleBtn').addEventListener('click', () => {
+        if (!pendingUpdate) return;
+        const { userId, newRole } = pendingUpdate;
+
+        fetch('../php/update_user_role.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: userId, role: newRole })
+        })
+        .then(r => r.json())
+        .then(data => {
+            closeModal('roleModal');
+            if (data.status === 'success') {
+                delete pendingChanges[userId];
+                showToast('Role updated to ' + newRole.toUpperCase(), 'success');
+                loadUsers();
+            } else {
+                showToast(data.message || 'Update failed', 'error');
+            }
+        })
+        .catch(() => { closeModal('roleModal'); showToast('Network error', 'error'); });
+    });
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    let pendingDeleteId = null;
+
+    function promptDelete(userId, email) {
+        pendingDeleteId = userId;
+        document.getElementById('deleteModalMsg').innerHTML =
+            `<strong>${esc(email)}</strong><br><br>This cannot be undone.`;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        if (!pendingDeleteId) return;
+
+        fetch('../php/delete_user.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: pendingDeleteId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            closeModal('deleteModal');
+            if (data.status === 'success') {
+                delete pendingChanges[pendingDeleteId];
+                showToast('User deleted', 'success');
+                loadUsers();
+            } else {
+                showToast(data.message || 'Delete failed', 'error');
+            }
+        })
+        .catch(() => { closeModal('deleteModal'); showToast('Network error', 'error'); });
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function closeModal(id) {
+        pendingUpdate   = null;
+        pendingDeleteId = null;
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function esc(str) {
+        return String(str ?? '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+            .replace(/'/g,'&#39;');
+    }
+
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className   = `show toast-${type}`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+    }
+</script>
+</body>
+</html>

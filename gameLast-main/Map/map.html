@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="canvas-wrapper">
+    <canvas></canvas>
+
+    <div class="search-wrapper">
+        <div class="search-container" id="searchContainer">
+            <input type="text" class="search-input" placeholder="Search buildings..." id="searchInput">
+            <div class="search-icon" id="searchBtn">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            </div>
+        </div>
+        <div class="ui-overlay">
+        <div id="mobileControls">
+            <div class="control-row">
+                <button class="joy-btn" id="btn-w">▲</button>
+            </div>
+            <div class="control-row">
+                <button class="joy-btn" id="btn-a">◀</button>
+                <button class="joy-btn" id="btn-s">▼</button>
+                <button class="joy-btn" id="btn-d">▶</button>
+            </div>
+        </div>
+        
+
+        <div id="infoPanel"></div>
+    </div>
+
+  <script src="classes.js"></script>
+  <script src="pathfinder.js"></script>
+  <script src="index.js"></script>
+  <script src="searchMap.js"></script>
+</body>
+</html>
