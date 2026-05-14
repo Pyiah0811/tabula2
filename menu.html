@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabula - Main Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="assets/auth.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+                        url('assets/img/bg.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* ── Card ── */
+        .menu-card {
+            background: #c9822b;
+            border: 6px solid #5b2f07;
+            box-shadow:
+                10px 10px 0px #3a1c05,
+                inset -6px -6px 0px #9b5d1a,
+                inset  6px  6px 0px #e6a24a;
+            padding: 50px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            width: 460px;
+        }
+
+        /* ── Title ── */
+        .menu-title {
+            font-size: 42px;
+            text-shadow: 4px 4px #3a1c05;
+            margin: 0 0 6px 0;
+            letter-spacing: 4px;
+        }
+
+        /* ── Welcome sub-label ── */
+        .welcome-label {
+            font-size: 9px;
+            color: #ffd166;
+            text-shadow: 2px 2px #3a1c05;
+            margin: 0 0 40px 0;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            width: 100%;
+            height: 4px;
+            background: #5b2f07;
+            margin-bottom: 36px;
+            box-shadow: 0 2px 0 #3a1c05;
+        }
+
+        /* ── Button group ── */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+        }
+
+        .pixel-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            padding: 16px 20px;
+            color: white;
+            border: 4px solid #3a1c05;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            width: 100%;
+            text-align: center;
+            background: #9b5d1a;
+        }
+
+        .pixel-btn:hover {
+            transform: translateY(2px);
+            box-shadow: 2px 2px 0px #000;
+            background: #e6a24a;
+        }
+
+        .pixel-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Individual button colours */
+        .btn-play    { background: #4caf50; border-color: #1e3a20; }
+        .btn-play:hover { background: #66bb6a; }
+
+        .btn-avatar  { background: #9b5d1a; border-color: #3a1c05; }
+
+        .btn-logout  { background: #ae2012; border-color: #5b0000; }
+        .btn-logout:hover { background: #c62828; }
+
+        /* ── Guest badge ── */
+        .guest-badge {
+            font-size: 7px;
+            color: #ffd166;
+            background: #5b2f07;
+            border: 2px solid #3a1c05;
+            padding: 4px 10px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        /* Hide avatar button for guests */
+        .btn-avatar.hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="menu-card">
+    <h1 class="menu-title">TABULA</h1>
+    <p class="welcome-label" id="welcomeLabel">WELCOME BACK,<br><span id="userName">EXPLORER</span></p>
+
+    <div id="guestBadge" class="guest-badge" style="display:none;">PLAYING AS GUEST</div>
+
+    <div class="divider"></div>
+
+    <div class="btn-group">
+        <button class="pixel-btn btn-play"   onclick="location.href='map/map.html'">▶ EXPLORE CAMPUS</button>
+        <button class="pixel-btn btn-avatar" id="avatarBtn" onclick="location.href='setup.html'">★ CHANGE AVATAR</button>
+        <button class="pixel-btn btn-logout" onclick="logout()">✕ LOGOUT</button>
+    </div>
+</div>
+
+<script>
+    const userRole = localStorage.getItem('userRole') || 'guest';
+    const userName = localStorage.getItem('userName') || 'GUEST';
+    const isGuest  = userRole === 'guest';
+
+    // Personalise greeting
+    document.getElementById('userName').textContent = userName.toUpperCase();
+
+    // Show guest badge, hide avatar button for guests
+    if (isGuest) {
+        document.getElementById('guestBadge').style.display = 'block';
+        document.getElementById('welcomeLabel').style.display = 'none';
+        document.getElementById('avatarBtn').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>

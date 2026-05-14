@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Tabula - Approve Building Edits</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="../assets/auth.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            min-height: 100vh;
+            background: #3a1c05 url("../bg.png") no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: -1;
+        }
+
+        .admin-panel {
+            width: 1100px;
+            background: #c9822b;
+            border: 6px solid #5b2f07;
+            padding: 24px;
+            box-shadow: 8px 8px 0px #000;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+            font-size: 14px;
+            text-shadow: 2px 2px #5b2f07;
+            margin: 0;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ── Filter tabs ────────────────────────────── */
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tab-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 8px 14px;
+            border: 3px solid;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #000;
+            transition: transform 0.1s;
+            color: white;
+        }
+        .tab-btn:active { transform: translateY(2px); box-shadow: 1px 1px 0px #000; }
+        .tab-btn.active  { background: #ffd166; color: #3a1c05; border-color: #3a1c05; }
+        .tab-btn.pending  { background: #854d0e; border-color: #713f12; }
+        .tab-btn.approved { background: #166534; border-color: #14532d; }
+        .tab-btn.rejected { background: #ae2012; border-color: #5b0000; }
+
+        /* ── Cards grid ─────────────────────────────── */
+        #cardsContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ── Proposal card ──────────────────────────── */
+        .proposal-card {
+            background: #9b5d1a;
+            border: 4px solid #5b2f07;
+            padding: 18px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .card-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #5b2f07;
+            padding-bottom: 10px;
+            margin-bottom: 4px;
+        }
+
+        .card-building-name {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            color: #ffd166;
+            text-shadow: 2px 2px #3a1c05;
+        }
+
+        .card-meta {
+            font-size: 10px;
+            color: #e6a24a;
+            text-align: right;
+            line-height: 1.6;
+        }
+
+        /* ── Diff columns ───────────────────────────── */
+        .diff-col h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            margin: 0 0 10px 0;
+            padding: 6px 10px;
+            border: 2px solid;
+        }
+        .diff-col.old h3 { background: #ae2012; border-color: #5b0000; color: #fff; }
+        .diff-col.new h3 { background: #166534; border-color: #14532d; color: #bbf7d0; }
+
+        .diff-field {
+            margin-bottom: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .diff-field label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            color: #ffd166;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .diff-value {
+            background: #3a1c05;
+            border: 2px solid #5b2f07;
+            padding: 6px 10px;
+            min-height: 28px;
+            word-break: break-word;
+        }
+        .diff-value.changed { border-color: #ffd166; color: #ffd166; }
+
+        /* ── Card actions ───────────────────────────── */
+        .card-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            min-width: 100px;
+        }
+
+        .pixel-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 10px 14px;
+            border: 3px solid;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #000;
+            transition: transform 0.1s;
+            color: white;
+            text-align: center;
+        }
+        .pixel-btn:active { transform: translateY(2px); box-shadow: 1px 1px 0px #000; }
+        .btn-approve { background: #4caf50; border-color: #1e3a20; }
+        .btn-reject  { background: #ae2012; border-color: #5b0000; }
+        .btn-back    { background: #fb5607; border-color: #9e2a2b; }
+
+        /* ── Status badge on reviewed cards ─────────── */
+        .reviewed-badge {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            padding: 8px 14px;
+            border: 3px solid;
+            text-align: center;
+        }
+        .badge-approved { background: #166534; border-color: #14532d; color: #bbf7d0; }
+        .badge-rejected { background: #ae2012; border-color: #5b0000; color: #fca5a5; }
+
+        /* ── Empty state ────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #9b5d1a;
+            padding: 40px;
+            border: 4px dashed #5b2f07;
+        }
+
+        /* ── Toast ──────────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #5b2f07;
+            border: 4px solid #3a1c05;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            color: #ffd166;
+            box-shadow: 6px 6px 0px #000;
+            transition: transform 0.3s;
+            z-index: 999;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.toast-success { border-color: #4caf50; color: #81c784; }
+        #toast.toast-error   { border-color: #ae2012; color: #ff6b6b; }
+
+        /* ── Scrollbar ──────────────────────────────── */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #5b2f07; }
+        ::-webkit-scrollbar-thumb { background: #c9822b; border: 2px solid #5b2f07; }
+    </style>
+</head>
+<body>
+
+<div class="admin-panel">
+    <h1>BUILDING EDIT APPROVALS</h1>
+
+    <div class="top-bar">
+        <button class="pixel-btn btn-back" onclick="location.href='admin_dashboard.html'">← BACK</button>
+        <div class="filter-tabs">
+            <button class="tab-btn pending  active" onclick="filterCards('pending')">PENDING</button>
+            <button class="tab-btn approved"        onclick="filterCards('approved')">APPROVED</button>
+            <button class="tab-btn rejected"        onclick="filterCards('rejected')">REJECTED</button>
+            <button class="tab-btn"  style="background:#5b2f07;border-color:#3a1c05" onclick="filterCards('all')">ALL</button>
+        </div>
+    </div>
+
+    <div id="cardsContainer">
+        <div class="empty-state">LOADING PROPOSALS...</div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    let allProposals = [];
+    let currentFilter = 'pending';
+
+    // ── Load ─────────────────────────────────────────────────────────────────
+    loadProposals();
+
+    function loadProposals() {
+        fetch('../php/pending_buildings.php')
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== 'success') return showToast('Failed to load proposals', 'error');
+                allProposals = data.proposals;
+                renderCards(currentFilter);
+            })
+            .catch(() => showToast('Network error', 'error'));
+    }
+
+    // ── Filter ───────────────────────────────────────────────────────────────
+    function filterCards(status) {
+        currentFilter = status;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderCards(status);
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    function renderCards(status) {
+        const container = document.getElementById('cardsContainer');
+        const filtered  = status === 'all'
+            ? allProposals
+            : allProposals.filter(p => p.status === status);
+
+        if (!filtered.length) {
+            container.innerHTML = `<div class="empty-state">NO ${status.toUpperCase()} PROPOSALS</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(p => {
+            const isPending = p.status === 'pending';
+
+            // Highlight changed fields
+            const nameChanged = p.new_name        !== p.old_name;
+            const descChanged = p.new_description !== p.old_description;
+            const flrChanged  = p.new_floors      !== p.old_floors;
+            const rmChanged   = p.new_rooms       !== p.old_rooms;
+
+            const actions = isPending ? `
+                <div class="card-actions">
+                    <button class="pixel-btn btn-approve" onclick="review(${p.id}, 'approve')">✔ APPROVE</button>
+                    <button class="pixel-btn btn-reject"  onclick="review(${p.id}, 'reject')">✘ REJECT</button>
+                </div>
+            ` : `
+                <div class="card-actions">
+                    <div class="reviewed-badge badge-${p.status}">
+                        ${p.status.toUpperCase()}
+                    </div>
+                </div>
+            `;
+
+            return `
+                <div class="proposal-card" id="card_${p.id}">
+                    <div class="card-header">
+                        <div class="card-building-name">📦 ${escHtml(p.building_current_name)}</div>
+                        <div class="card-meta">
+                            By: ${escHtml(p.proposed_by_name || p.proposed_by_email)}<br>
+                            ${new Date(p.created_at).toLocaleString()}
+                        </div>
+                    </div>
+
+                    <div class="diff-col old">
+                        <h3>◀ CURRENT</h3>
+                        <div class="diff-field">
+                            <label>NAME</label>
+                            <div class="diff-value ${nameChanged?'changed':''}">${escHtml(p.old_name||'—')}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>DESCRIPTION</label>
+                            <div class="diff-value ${descChanged?'changed':''}">${escHtml(p.old_description||'—')}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>FLOORS</label>
+                            <div class="diff-value ${flrChanged?'changed':''}">${p.old_floors??'—'}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>ROOMS</label>
+                            <div class="diff-value ${rmChanged?'changed':''}">${p.old_rooms??'—'}</div>
+                        </div>
+                    </div>
+
+                    <div class="diff-col new">
+                        <h3>▶ PROPOSED</h3>
+                        <div class="diff-field">
+                            <label>NAME</label>
+                            <div class="diff-value ${nameChanged?'changed':''}">${escHtml(p.new_name||'—')}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>DESCRIPTION</label>
+                            <div class="diff-value ${descChanged?'changed':''}">${escHtml(p.new_description||'—')}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>FLOORS</label>
+                            <div class="diff-value ${flrChanged?'changed':''}">${p.new_floors??'—'}</div>
+                        </div>
+                        <div class="diff-field">
+                            <label>ROOMS</label>
+                            <div class="diff-value ${rmChanged?'changed':''}">${p.new_rooms??'—'}</div>
+                        </div>
+                    </div>
+
+                    ${actions}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ── Review ───────────────────────────────────────────────────────────────
+    function review(proposalId, action) {
+        fetch('../php/review_building.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: proposalId, action })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                loadProposals();
+            } else {
+                showToast(data.message || 'Failed', 'error');
+            }
+        })
+        .catch(() => showToast('Network error', 'error'));
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function escHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className   = `show toast-${type}`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+    }
+</script>
+</body>
+</html>

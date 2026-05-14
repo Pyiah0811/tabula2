@@ -1,0 +1,406 @@
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: rgb(65, 65, 65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* =============================================
+   LANDSCAPE GATE
+   ============================================= */
+#rotatePrompt {
+    display: none; /* hidden by default */
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #1a0e05;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.rotate-content {
+    color: #fff8e6;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 30px;
+}
+
+.rotate-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+    display: inline-block;
+    animation: spin 2s linear infinite;
+    color: #f1c40f;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.rotate-content p {
+    font-size: clamp(14px, 4vw, 20px);
+    color: #fff8e6;
+    max-width: 280px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+
+/*
+   Phone detection strategy:
+   - max-width 768px targets phones in both orientations (tablets/desktops stay above this)
+   - In portrait  → show the rotate prompt, hide the game
+   - In landscape → hide the prompt, show the game
+   Desktop and tablets never trigger this since their width is always > 768px
+*/
+@media (max-width: 768px) and (orientation: portrait) {
+    #rotatePrompt { display: flex; }
+    #gameWrapper  { display: none;  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+    #rotatePrompt { display: none;  }
+    #gameWrapper  { display: block; }
+}
+
+/* =============================================
+   CANVAS & WRAPPER
+   ============================================= */
+.canvas-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: black;
+    touch-action: none;
+    image-rendering: pixelated;
+    border: 2px solid white;
+}
+
+/* =============================================
+   SEARCH BAR
+   ============================================= */
+.search-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+
+    /* Panels can scroll if they overflow the screen height */
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* Hide scrollbar visually but keep functionality */
+    scrollbar-width: none;
+}
+.search-wrapper::-webkit-scrollbar { display: none; }
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background: #9b6a2f;
+    border: 4px solid #3e2612;
+    outline: 2px solid #000;
+    outline-offset: -5px;
+    border-radius: 50px;
+    padding: 0;
+    width: 46px;
+    height: 46px;
+    transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    box-shadow: 0 4px 0 #2a160b, 0 6px 12px rgba(0,0,0,0.35);
+    flex-shrink: 0;
+}
+
+.search-container.active {
+    width: min(280px, 80vw); /* never wider than 80% of viewport */
+    border-radius: 50px;
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    width: 0;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    color: #ffffff;
+    transition: width 0.4s, opacity 0.2s;
+    opacity: 0;
+}
+
+.search-input::placeholder {
+    color: #ffffff;
+    opacity: 0.8;
+}
+
+.search-container.active .search-input {
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 5px;
+    opacity: 1;
+}
+
+.search-icon {
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 18px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.search-icon:hover { transform: scale(1.1); color: #f1c40f; }
+
+/* =============================================
+   INFO & ROOM PANELS
+   ============================================= */
+#infoPanel,
+#roomPanel {
+    display: none;
+    width: min(300px, 90vw);   /* shrinks on small screens */
+    padding: 15px;
+
+    background: #9b6a2f;
+    border: 5px solid #3e2612;
+    border-radius: 10px;
+    outline: 3px solid #000;
+    outline-offset: -6px;
+    box-shadow: 0 5px 0 #2a160b, 0 8px 15px rgba(0,0,0,0.35);
+
+    color: #fff8e6;
+    font-family: Arial, sans-serif;
+
+    /* Panels themselves scroll if content overflows */
+    max-height: 40vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3e2612 transparent;
+}
+
+/* Landscape mobile: give panels more room since screen is wider but shorter */
+@media (max-width: 768px) and (orientation: landscape) {
+    #infoPanel,
+    #roomPanel {
+        max-height: 35vh;
+        font-size: 0.85em;
+        padding: 10px;
+    }
+
+    #roomPanel {
+        margin-top: 6px;
+    }
+}
+
+#infoPanel h3,
+#roomPanel h4 {
+    margin: 0 0 10px 0;
+    color: #f1c40f;
+    text-shadow: 2px 2px 0px #000;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#infoPanel p {
+    margin: 10px 0;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Wood Styled Buttons */
+#infoPanel button {
+    background: #5a381a;
+    border: 2px solid #2b160b;
+    color: white;
+    padding: 6px 12px;
+    margin-top: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+#infoPanel button:hover {
+    background: #7a4a22;
+    border-color: #f1c40f;
+}
+
+/* Search counter & nav */
+.search-counter {
+    margin-top: 8px;
+    font-size: 0.8em;
+    color: #f1c40f;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.search-nav {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+/* =============================================
+   ROOM LIST
+   ============================================= */
+.floor-section    { margin-bottom: 15px; }
+
+.floor-header {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 0.9em;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 5px;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.room-item {
+    padding: 8px;
+    border-left: 4px solid #f1c40f;
+    background: rgba(0,0,0,0.2);
+    margin-bottom: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85em;
+    color: #ffffff;
+}
+
+.room-item:hover { background: rgba(241,196,15,0.2); }
+
+.room-result {
+    background: rgba(241,196,15,0.2);
+    border-left: 4px solid #f1c40f;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #fff;
+}
+
+/* =============================================
+   MOBILE D-PAD
+   ============================================= */
+#mobileControls {
+    position: absolute;       /* sits inside canvas-wrapper */
+    bottom: 20px;
+    left: 20px;
+    display: none;            /* hidden on desktop */
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    z-index: 1000;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.control-row {
+    display: flex;
+    justify-content: center;
+}
+
+.joy-btn {
+    width: 60px;
+    height: 60px;
+    margin: 4px;
+    background: rgba(155, 106, 47, 0.85);
+    border: 3px solid #3e2612;
+    border-radius: 12px;
+    color: white;
+    font-size: 22px;
+    touch-action: manipulation;
+    cursor: pointer;
+    /* Prevents iOS callout on long-press */
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.joy-btn:active { background: #f1c40f; color: #1a0e05; }
+
+/* Slightly smaller buttons on very small landscape screens */
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 450px) {
+    .joy-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+        margin: 3px;
+    }
+
+    #mobileControls {
+        bottom: 10px;
+        left: 10px;
+    }
+}
+
+/* Show d-pad on mobile landscape (the only playable orientation) */
+@media (max-width: 768px) and (orientation: landscape) {
+    #mobileControls { display: flex; }
+}
+
+/* =============================================
+   PANEL ACTION BUTTONS (Go To / Close / Nav)
+   ============================================= */
+.panel-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.panel-actions button,
+.search-nav button {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;   /* larger tap target for mobile */
+    font-size: 0.9em;
+    font-weight: bold;
+    background: #5a381a;
+    border: 2px solid #2b160b;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.panel-actions button:active,
+.search-nav button:active {
+    background: #f1c40f;
+    color: #1a0e05;
+    border-color: #2b160b;
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .panel-actions button,
+    .search-nav button {
+        padding: 8px 6px;
+        font-size: 0.8em;
+    }
+}

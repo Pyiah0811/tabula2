@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabula</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      /* Title Colors */
+      --title-gradient-light: #164d94;
+      --title-gradient-dark: #164d94;
+      --title-outline: #ffffff;
+      --title-shadow: #000000;
+
+      /* Button Colors */
+      --guest-btn-bg: #fb5607;
+      --guest-btn-border: #9e2a2b;
+      --google-btn-bg: #4285F4;
+      --google-btn-border: #2a5298;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Press Start 2P', cursive;
+      /* Background directly on body for stability */
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('assets/img/bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .title {
+      font-size: 100px;
+      margin: 0 0 60px 0;
+      text-transform: uppercase;
+      background: linear-gradient(to bottom, var(--title-gradient-light), var(--title-gradient-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-stroke: 1.5px var(--title-outline);
+      filter: drop-shadow(8px 8px 0px var(--title-shadow));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); } /* Changed from -15px to -10px */
+    }
+
+  .sub-title {
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 22px;
+  margin: -30px 0 50px 0; /* Pulls it up toward the title */
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 3px;
+  
+  /* Hardcoded Blue Gradient */
+  background: #ffffff;  
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* Hardcoded White Outline and Black Shadow */
+
+  filter: drop-shadow(4px 4px 0px #000000);
+  
+  animation: float 3s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+    /* Side-by-Side Button Row */
+    .button-row {
+      display: flex;
+      gap: 40px; /* Space between buttons */
+      z-index: 10;
+    }
+
+.pixel-button {
+  position: relative;
+  width: 280px;
+  height: 65px;
+  border: none;
+  
+  /* Normal but Thick Font */
+  font-family: Arial, sans-serif; 
+  font-weight: 900; 
+  font-size: 18px;
+  
+  color: white;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Rounder Corners */
+  border-radius: 20px; 
+  
+  transition: transform 0.1s;
+  z-index: 10;
+}
+
+    .guest-color {
+      background: var(--guest-btn-bg);
+      border-bottom: 6px solid var(--guest-btn-border);
+    }
+
+    .google-color {
+      background: var(--google-btn-bg);
+      border-bottom: 6px solid var(--google-btn-border);
+    }
+
+    .pixel-button:active {
+      transform: translateY(4px);
+      border-bottom-width: 2px;
+    }
+
+    .google-wrapper {
+      position: relative;
+    }
+
+    /* Hidden Google Clicker */
+    #googleBtnContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      z-index: 20;
+      cursor: pointer;
+    }
+
+    #errorMsg {
+      position: absolute;
+      top: 80px; /* Sits below the button */
+      width: 100%;
+      color: #ff0000;
+      font-size: 10px;
+      text-align: center;
+      -webkit-text-stroke: 0.5px black;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="title">TABULA</h1>
+  <h2 class="sub-title">Explore  DYCI  Campus  in  a  Whole  New  Way!</h2>
+  
+  <div class="button-row">
+    <button class="pixel-button guest-color" onclick="playAsGuest()">
+      Play as Guest
+    </button>
+
+    <div class="google-wrapper">
+      <div class="pixel-button google-color">
+        Google Login
+      </div>
+      <div id="googleBtnContainer"></div>
+      <p id="errorMsg"></p>
+    </div>
+  </div>
+
+<script>
+  const CLIENT_ID = "509785679401-9hlh0mcaft7miamq7j4pvl90pqqksun3.apps.googleusercontent.com"; 
+
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: handleCredentialResponse
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById("googleBtnContainer"),
+      { theme: "filled_blue", size: "large", width: 280, shape: "rectangular" }
+    );
+  };
+
+function handleCredentialResponse(response) {
+  fetch("php/auth_google.php", { // Updated Path
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credential: response.credential })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === "new_user") {
+      localStorage.setItem("userEmail", data.email);
+      localStorage.setItem("userRole", data.role || "user");
+      window.location.href = "setup.html"; // Same level
+
+    } else if (data.status === "login") {
+      localStorage.setItem("userName", data.name);
+      localStorage.setItem("userRole", data.role);
+
+      if (data.role === "admin" || data.role === "superadmin") {
+          window.location.href = "admin/admin_dashboard.html"; // Updated Path
+      } else {
+          window.location.href = "menu.html"; // Same level
+      }
+    }
+  });
+}
+
+function playAsGuest() {
+  // Clear any old roles first to avoid confusion
+  localStorage.clear();
+  
+  localStorage.setItem("userType", "guest");
+  localStorage.setItem("userRole", "guest"); // Set a role so the security check knows it's a guest
+  localStorage.setItem("userName", "Guest");
+  window.location.href = "menu.html";
+}
+</script>
+</body>
+</html>
